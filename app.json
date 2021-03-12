@@ -1,0 +1,25 @@
+{
+    "name": "Telegram Quiz Bot",
+    "description": "A PTB bot, which can easily be deployed to Heroku.",
+    "repository": "https://github.com/infinity-plus/telegram_quiz_bot",
+    "logo": "",
+    "keywords": ["python", "ptb", "telegram", "python-telegram-bot"],
+    "image": "heroku/python",
+    "formation": {
+        "web": {
+            "quantity": 1,
+            "size": "free"
+        }
+    },
+    "env": {
+        "api": {
+            "description": "Bot API Key from BotFather https://t.me/BotFather"
+        },
+        "sheet1": {
+            "description": "API key from https://sheet.best"
+        },
+        "sheet2": {
+            "description": "API key from https://sheet.best"
+        }
+    }
+}
