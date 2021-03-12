@@ -46,7 +46,10 @@ class Quiz:
         dispatcher.add_handler(RolesHandler(
             stop_button_handler, roles.chat_admins))
 
-        updater.start_polling()
+        updater.start_webhook(listen="0.0.0.0",
+                              port=int(Config.PORT),
+                              url_path=self.TOKEN)
+        updater.bot.setWebhook(Config.heroku + self.TOKEN)
 
     def start(self, update, context):
         context.bot.send_message(
@@ -174,7 +177,7 @@ if __name__ == '__main__':
     logger = logging.getLogger(__name__)
     logging.basicConfig(
         format='%(levelname)s:%(asctime)s:%(filename)s,%(lineno)d:%(name)s.%(funcName)s:%(message)s', level=logging.WARN)
-    if not (Config.api == "None" or Config.sheet1 == "None" or Config.sheet2 == "None"):
+    if not (Config.api == "None" or Config.sheet1 == "None" or Config.sheet2 == "None" or Config.heroku == "None"):
         quiz_bot = Quiz(Config.api)
         quiz_bot.initilize()
     else:

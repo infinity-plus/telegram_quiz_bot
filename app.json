@@ -20,6 +20,9 @@
         },
         "sheet2": {
             "description": "API key from https://sheet.best"
+        },
+        "heroku": {
+            "description": "Heroku app link. Type App Name to get link."
         }
     }
 }
