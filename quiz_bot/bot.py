@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# TODO: Add logging
 
-from telegram.ext import Updater, CommandHandler, Filters, CallbackQueryHandler
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
 import logging
 from question import Question, QuestionList
 from config import Config
 from requests import get
-from ptbcontrib.roles import setup_roles, RolesHandler, Role
+from ptbcontrib.roles import setup_roles, RolesHandler
 from autologging import logged, traced
+from telegram.utils.helpers import mention_markdown, escape_markdown
 
 
 @traced
@@ -111,26 +111,28 @@ class Quiz:
             reply_markup=InlineKeyboardMarkup(option_keyboard))
 
     def check_option(self, update, context):
-        if update.effective_user.username not in context.chat_data['question_attempted_by']:
+        if update.effective_user.id not in context.chat_data['question_attempted_by']:
             chosen = int(update.callback_query.data.split('_')[1])
             que: Question = context.chat_data['qlist'][context.chat_data['question_number']]
-            if(context.chat_data['marksheet'].get('@' + update.effective_user.username, None) == None):
-                context.chat_data['marksheet']['@' +
-                                               update.effective_user.username] = 0
+            if(context.chat_data['marksheet'].get(update.effective_user.id, None) == None):
+                context.chat_data['marksheet'][int(update.effective_user.id)] = {
+                    'name': escape_markdown(update.effective_user.full_name),
+                    'score': 0}
             if que.is_correct(que.get_options()[chosen]):
-                context.chat_data['marksheet']['@' +
-                                               update.effective_user.username] += 1
+                context.chat_data['marksheet'][update.effective_user.id]['score'] += 1
                 context.bot.answer_callback_query(
                     callback_query_id=update.callback_query.id,
                     text="Correct!",
                     show_alert=True)
+                context.chat_data['question_attempted_by'].append(
+                    update.effective_user.id)
             else:
                 context.bot.answer_callback_query(
                     callback_query_id=update.callback_query.id,
                     text="Incorrect!",
                     show_alert=True)
             context.chat_data['question_attempted_by'].append(
-                update.effective_user.username)
+                update.effective_user.id)
         else:
             context.bot.answer_callback_query(
                 callback_query_id=update.callback_query.id,
@@ -149,28 +151,33 @@ class Quiz:
                 text=msg_text,
                 chat_id=self.message.chat.id,
                 message_id=self.message.message_id,
-                reply_markup=InlineKeyboardMarkup(option_keyboard))
+                reply_markup=InlineKeyboardMarkup(option_keyboard),
+                parse_mode=ParseMode.MARKDOWN)
         else:
             context.chat_data['question_number'] = -1
             msg_text = "Quiz Over!"
-            scoreboard = "\n".join("{}\t{}".format(k, v)
-                                   for k, v in context.chat_data['marksheet'].items())
+            data = [f"{mention_markdown(id, attendee['name'])} : {attendee['score']}" for id,
+                    attendee in context.chat_data['marksheet'].items()]
+            scoreboard = "\n".join(data)
             msg_text += "\n" + f'Scoreboard:' + "\n" + f'{scoreboard}'
             context.bot.edit_message_text(
                 text=msg_text,
                 chat_id=self.message.chat.id,
-                message_id=self.message.message_id)
+                message_id=self.message.message_id,
+                parse_mode=ParseMode.MARKDOWN)
 
     def stop_quiz(self, update, context):
         if(context.chat_data.get('question_number', 0) != -1):
             context.chat_data['question_number'] = -1
-            msg = "Quiz stopped successfully"
-            scoreboard = "\n".join("{}\t{}".format(k, v)
-                                   for k, v in context.chat_data['marksheet'].items())
+            msg = "Quiz stopped successfully."
+            data = []
+            data = [f"{mention_markdown(id, attendee['name'])} : {attendee['score']}" for id,
+                    attendee in context.chat_data['marksheet'].items()]
+            scoreboard = "\n".join(data)
             msg += "\n" + f'Scoreboard:' + "\n" + f'{scoreboard}'
         else:
             msg = "No quiz was there to stop :p"
-        update.message.reply_text(msg)
+        update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
 
 
 if __name__ == '__main__':
