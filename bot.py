@@ -162,14 +162,14 @@ class Quiz:
                     attendee in context.chat_data['marksheet'].items()]
             scoreboard = "\n".join(data)
             msg_text += "\n" + 'Scoreboard:' + "\n" + f'{scoreboard}'
-            context.bot.edit_message_text(
+            context.bot.delete_message(chat_id=self.message.chat.id,
+                                       message_id=self.message.message_id)
+            context.bot.send_message(
                 text=msg_text,
                 chat_id=self.message.chat.id,
-                message_id=self.message.message_id,
                 parse_mode=ParseMode.MARKDOWN)
 
-    @staticmethod
-    def stop_quiz(update, context):
+    def stop_quiz(self, update, context):
         if context.chat_data.get('question_number', 0) != -1:
             context.chat_data['question_number'] = -1
             msg = "Quiz stopped successfully."
@@ -178,6 +178,8 @@ class Quiz:
                     attendee in context.chat_data['marksheet'].items()]
             scoreboard = "\n".join(data)
             msg += "\n" + 'Scoreboard:' + "\n" + f'{scoreboard}'
+            context.bot.delete_message(chat_id=self.message.chat.id,
+                                       message_id=self.message.message_id)
         else:
             msg = "No quiz was there to stop :p"
         update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
