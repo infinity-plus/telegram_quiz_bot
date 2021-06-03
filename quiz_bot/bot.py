@@ -159,7 +159,7 @@ class Quiz:
             data = [f"{mention_markdown(id, attendee['name'])} : {attendee['score']}" for id,
                     attendee in context.chat_data['marksheet'].items()]
             scoreboard = "\n".join(data)
-            msg_text += "\n" + f'Scoreboard:' + "\n" + f'{scoreboard}'
+            msg_text += "\n" + 'Scoreboard:' + "\n" + f'{scoreboard}'
             context.bot.edit_message_text(
                 text=msg_text,
                 chat_id=self.message.chat.id,
@@ -174,7 +174,7 @@ class Quiz:
             data = [f"{mention_markdown(id, attendee['name'])} : {attendee['score']}" for id,
                     attendee in context.chat_data['marksheet'].items()]
             scoreboard = "\n".join(data)
-            msg += "\n" + f'Scoreboard:' + "\n" + f'{scoreboard}'
+            msg += "\n" + 'Scoreboard:' + "\n" + f'{scoreboard}'
         else:
             msg = "No quiz was there to stop :p"
         update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
