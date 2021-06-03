@@ -141,6 +141,7 @@ class Quiz:
                 show_alert=True)
 
     def next_question(self, update, context):
+        update.callback_query.answer()
         if context.chat_data['question_number'] < (len(context.chat_data['qlist'])-1):
             context.chat_data['question_number'] += 1
             context.chat_data['question_attempted_by'] = []
