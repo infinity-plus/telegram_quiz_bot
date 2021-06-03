@@ -51,7 +51,8 @@ class Quiz:
                               url_path=self.TOKEN)
         updater.bot.setWebhook(Config.heroku + self.TOKEN)
 
-    def start(self, update, context):
+    @staticmethod
+    def start(update, context):
         context.bot.send_message(
             chat_id=update.effective_chat.id, text="I'm a bot, please talk to me!")
 
@@ -86,7 +87,8 @@ class Quiz:
             message_id=self.message.message_id,
             reply_markup=reply_markup)
 
-    def parse_question(self, question: Question):
+    @staticmethod
+    def parse_question(question: Question):
         statement = question.get_question()
         options = question.get_options()
         keyboard = []
@@ -110,7 +112,8 @@ class Quiz:
             message_id=self.message.message_id,
             reply_markup=InlineKeyboardMarkup(option_keyboard))
 
-    def check_option(self, update, context):
+    @staticmethod
+    def check_option(update, context):
         if update.effective_user.id not in context.chat_data['question_attempted_by']:
             chosen = int(update.callback_query.data.split('_')[1])
             que: Question = context.chat_data['qlist'][context.chat_data['question_number']]
@@ -166,7 +169,8 @@ class Quiz:
                 message_id=self.message.message_id,
                 parse_mode=ParseMode.MARKDOWN)
 
-    def stop_quiz(self, update, context):
+    @staticmethod
+    def stop_quiz(update, context):
         if context.chat_data.get('question_number', 0) != -1:
             context.chat_data['question_number'] = -1
             msg = "Quiz stopped successfully."
