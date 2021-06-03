@@ -130,7 +130,7 @@ class Quiz:
             else:
                 context.bot.answer_callback_query(
                     callback_query_id=update.callback_query.id,
-                    text="Incorrect!",
+                    text=f"Incorrect!, the correct answer is: {que.get_correct()}",
                     show_alert=True)
             context.chat_data['question_attempted_by'].append(
                 update.effective_user.id)
