@@ -98,7 +98,7 @@ class Quiz:
 
     def start_quiz(self, update, context):
         context.chat_data['question_number'] = 0
-        context.chat_data['marksheet'] = dict()
+        context.chat_data['marksheet'] = {}
         context.chat_data['question_attempted_by'] = []
         msg_text, option_keyboard = self.parse_question(
             context.chat_data['qlist'][context.chat_data['question_number']])
