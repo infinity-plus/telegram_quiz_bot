@@ -114,7 +114,7 @@ class Quiz:
         if update.effective_user.id not in context.chat_data['question_attempted_by']:
             chosen = int(update.callback_query.data.split('_')[1])
             que: Question = context.chat_data['qlist'][context.chat_data['question_number']]
-            if(context.chat_data['marksheet'].get(update.effective_user.id, None) == None):
+            if(context.chat_data['marksheet'].get(update.effective_user.id, None) is None):
                 context.chat_data['marksheet'][int(update.effective_user.id)] = {
                     'name': escape_markdown(update.effective_user.full_name),
                     'score': 0}
