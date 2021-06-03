@@ -56,7 +56,7 @@ class Quiz:
             chat_id=update.effective_chat.id, text="I'm a bot, please talk to me!")
 
     def new_quiz(self, update, context):
-        if(context.chat_data.get('question_number', -1) == -1):
+        if context.chat_data.get('question_number', -1) == -1:
             options = ['quiz1', 'quiz2']
             keyboard = [[InlineKeyboardButton(
                 i, callback_data=i) for i in options]]
@@ -114,7 +114,7 @@ class Quiz:
         if update.effective_user.id not in context.chat_data['question_attempted_by']:
             chosen = int(update.callback_query.data.split('_')[1])
             que: Question = context.chat_data['qlist'][context.chat_data['question_number']]
-            if(context.chat_data['marksheet'].get(update.effective_user.id, None) is None):
+            if context.chat_data['marksheet'].get(update.effective_user.id, None) is None:
                 context.chat_data['marksheet'][int(update.effective_user.id)] = {
                     'name': escape_markdown(update.effective_user.full_name),
                     'score': 0}
@@ -167,7 +167,7 @@ class Quiz:
                 parse_mode=ParseMode.MARKDOWN)
 
     def stop_quiz(self, update, context):
-        if(context.chat_data.get('question_number', 0) != -1):
+        if context.chat_data.get('question_number', 0) != -1:
             context.chat_data['question_number'] = -1
             msg = "Quiz stopped successfully."
             data = []
