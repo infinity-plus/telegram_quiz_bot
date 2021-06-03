@@ -41,8 +41,8 @@ class Question:
 
     def ask_question(self) -> str:
         newline = '\n'
-        return f'''Question: {self.statement}
-        Options: {newline.join(self.options)}'''
+        return f'''Question: {self.statement}{newline}{newline}
+        Options:{newline}{newline.join([f"{number}. {option}" for number, option in enumerate(self.options, start=1)])}'''
 
 
 @traced
