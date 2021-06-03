@@ -89,12 +89,10 @@ class Quiz:
 
     @staticmethod
     def parse_question(question: Question):
-        statement = question.get_question()
+        statement = question.ask_question()
         options = question.get_options()
-        keyboard = []
-        for i in options:
-            keyboard.append([InlineKeyboardButton(
-                i, callback_data=f'option_{options.index(i)}')])
+        keyboard = [[InlineKeyboardButton(
+            str(i+1), callback_data=f'option_{i}') for i in range(len(options))]]
 
         return (statement, keyboard)
 
