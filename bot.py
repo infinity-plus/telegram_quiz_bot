@@ -109,6 +109,7 @@ class Quiz:
             chat_id=self.message.chat.id,
             message_id=self.message.message_id,
             reply_markup=InlineKeyboardMarkup(option_keyboard))
+        self.message.pin()
 
     @staticmethod
     def check_option(update, context):
@@ -164,10 +165,11 @@ class Quiz:
             msg_text += "\n" + 'Scoreboard:' + "\n" + f'{scoreboard}'
             context.bot.delete_message(chat_id=self.message.chat.id,
                                        message_id=self.message.message_id)
-            context.bot.send_message(
+            score_msg = context.bot.send_message(
                 text=msg_text,
                 chat_id=self.message.chat.id,
                 parse_mode=ParseMode.MARKDOWN)
+            score_msg.pin()
 
     def stop_quiz(self, update, context):
         if context.chat_data.get('question_number', 0) != -1:
@@ -182,7 +184,9 @@ class Quiz:
                                        message_id=self.message.message_id)
         else:
             msg = "No quiz was there to stop :p"
-        update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
+        score_msg = update.message.reply_text(
+            msg, parse_mode=ParseMode.MARKDOWN)
+        score_msg.pin()
 
 
 if __name__ == '__main__':
