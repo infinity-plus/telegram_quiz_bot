@@ -25,13 +25,13 @@ class Quiz:
 
         quiz_handler = CommandHandler('quiz', self.new_quiz)
         choose_quiz_handler = CallbackQueryHandler(
-            self.choose_quiz, pattern='^' + 'quiz[1-2]' + '$')
+            self.choose_quiz, pattern=r'^quiz[1-2]$')
         start_button_handler = CallbackQueryHandler(
-            self.start_quiz, pattern='^' + r'start_quiz' + '$')
+            self.start_quiz, pattern=r'^start_quiz$')
         check_option_handler = CallbackQueryHandler(
-            self.check_option, pattern='^' + r'option\_[0-3]' + '$')
+            self.check_option, pattern=r'^option\_[0-3]$')
         next_question_handler = CallbackQueryHandler(
-            self.next_question, pattern='^' + r'next' + '$')
+            self.next_question, pattern=r'^next$')
         stop_button_handler = CommandHandler('stop', self.stop_quiz)
 
         dispatcher.add_handler(CommandHandler('start', self.start))
@@ -158,11 +158,11 @@ class Quiz:
                 parse_mode=ParseMode.MARKDOWN)
         else:
             context.chat_data['question_number'] = -1
-            msg_text = "Quiz Over!"
+            msg_text = "**Quiz Over**!"
             data = [f"{mention_markdown(id, attendee['name'])} : {attendee['score']}" for id,
                     attendee in context.chat_data['marksheet'].items()]
             scoreboard = "\n".join(data)
-            msg_text += "\n" + 'Scoreboard:' + "\n" + f'{scoreboard}'
+            msg_text += "\n" + '**Scoreboard:**' + "\n" + f'{scoreboard}'
             context.bot.delete_message(chat_id=self.message.chat.id,
                                        message_id=self.message.message_id)
             score_msg = context.bot.send_message(
@@ -179,7 +179,7 @@ class Quiz:
             data = [f"{mention_markdown(id, attendee['name'])} : {attendee['score']}" for id,
                     attendee in context.chat_data['marksheet'].items()]
             scoreboard = "\n".join(data)
-            msg += "\n" + 'Scoreboard:' + "\n" + f'{scoreboard}'
+            msg += "\n" + '**Scoreboard:**' + "\n" + f'{scoreboard}'
             context.bot.delete_message(chat_id=self.message.chat.id,
                                        message_id=self.message.message_id)
         else:
