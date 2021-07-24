@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode, Update
 import logging
+from requests import get
+
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode, Update
+from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext
+from telegram.utils.helpers import mention_markdown, escape_markdown
+
+from ptbcontrib.roles import setup_roles, RolesHandler
 from question import Question, QuestionList
 from config import Config
-from requests import get
-from ptbcontrib.roles import setup_roles, RolesHandler
 from autologging import logged, traced
-from telegram.utils.helpers import mention_markdown, escape_markdown
 
 
 @traced
@@ -32,7 +33,7 @@ class Quiz:
                                                     pattern=r'^option\_[0-3]$')
         next_question_handler = CallbackQueryHandler(self.next_question,
                                                      pattern=r'^next$')
-        stop_button_handler = CommandHandler('stop', self.stop_quiz)
+        stop_button_handler = CommandHandler('stop', Quiz.stop_quiz)
 
         dispatcher.add_handler(CommandHandler('start', self.start))
         dispatcher.add_handler(RolesHandler(quiz_handler, roles.chat_admins))
@@ -56,39 +57,41 @@ class Quiz:
         context.bot.send_message(chat_id=update.effective_chat.id,
                                  text="I'm a bot, please talk to me!")
 
-    def new_quiz(self, update: Update, context: CallbackContext):
+    @staticmethod
+    def new_quiz(update: Update, context: CallbackContext):
         if context.chat_data.get('question_number', -1) == -1:
             options = ['quiz1', 'quiz2']
             keyboard = [[
                 InlineKeyboardButton(i, callback_data=i) for i in options
             ]]
             reply_markup = InlineKeyboardMarkup(keyboard)
-            self.message = context.bot.send_message(
+            context.chat_data['message'] = context.bot.send_message(
                 chat_id=update.effective_chat.id,
                 text="Choose your quiz. (Admin only)",
                 reply_markup=reply_markup)
         else:
-            self.message = context.bot.send_message(
+            context.chat_data['message'] = context.bot.send_message(
                 chat_id=update.effective_chat.id,
                 text="A quiz is already running, close it first!")
 
-    def choose_quiz(self, update: Update, context: CallbackContext) -> None:
+    @staticmethod
+    def choose_quiz(update: Update, context: CallbackContext) -> None:
         chosen = update.callback_query.data
         if chosen == "quiz1":
-            self.current = Config.sheet1
+            context.chat_data['current'] = Config.sheet1
         elif chosen == "quiz2":
-            self.current = Config.sheet2
-        response = get(self.current)
+            context.chat_data['current'] = Config.sheet2
+        response = get(context.chat_data['current'])
         result = response.json()
         context.chat_data["qlist"] = QuestionList(result)
         keyboard = [[
             InlineKeyboardButton("start", callback_data="start_quiz")
         ]]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        self.message = context.bot.edit_message_text(
+        context.chat_data['message'] = context.bot.edit_message_text(
             text=f"{chosen} selected!",
-            chat_id=self.message.chat.id,
-            message_id=self.message.message_id,
+            chat_id=context.chat_data['message'].chat.id,
+            message_id=context.chat_data['message'].message_id,
             reply_markup=reply_markup)
 
     @staticmethod
@@ -104,20 +107,21 @@ class Quiz:
 
         return (statement, keyboard)
 
-    def start_quiz(self, update: Update, context: CallbackContext) -> None:
+    @staticmethod
+    def start_quiz(update: Update, context: CallbackContext) -> None:
         context.chat_data['question_number'] = 0
         context.chat_data['marksheet'] = {}
         context.chat_data['question_attempted_by'] = []
-        msg_text, option_keyboard = self.parse_question(
+        msg_text, option_keyboard = Quiz.parse_question(
             context.chat_data['qlist'][context.chat_data['question_number']])
         option_keyboard.append(
             [InlineKeyboardButton("Next (Admin Only)", callback_data="next")])
-        self.message = context.bot.edit_message_text(
+        context.chat_data['message'] = context.bot.edit_message_text(
             text=msg_text,
-            chat_id=self.message.chat.id,
-            message_id=self.message.message_id,
+            chat_id=context.chat_data['message'].chat.id,
+            message_id=context.chat_data['message'].message_id,
             reply_markup=InlineKeyboardMarkup(option_keyboard))
-        self.message.pin()
+        context.chat_data['message'].pin()
 
     @staticmethod
     def check_option(update: Update, context: CallbackContext) -> None:
@@ -173,10 +177,11 @@ class Quiz:
         ]
         scoreboard = "\n".join(data_str)
         msg_text += f'{scoreboard}'
-        context.bot.delete_message(chat_id=self.message.chat.id,
-                                   message_id=self.message.message_id)
+        context.bot.delete_message(
+            chat_id=context.chat_data['message'].chat.id,
+            message_id=context.chat_data['message'].message_id)
         context.bot.send_message(text=msg_text,
-                                 chat_id=self.message.chat.id,
+                                 chat_id=context.chat_data['message'].chat.id,
                                  parse_mode=ParseMode.MARKDOWN).pin()
 
     def next_question(self, update: Update, context: CallbackContext) -> None:
@@ -191,16 +196,17 @@ class Quiz:
             option_keyboard.append([
                 InlineKeyboardButton("Next (Admin Only)", callback_data="next")
             ])
-            self.message = context.bot.edit_message_text(
+            context.chat_data['message'] = context.bot.edit_message_text(
                 text=msg_text,
-                chat_id=self.message.chat.id,
-                message_id=self.message.message_id,
+                chat_id=context.chat_data['message'].chat.id,
+                message_id=context.chat_data['message'].message_id,
                 reply_markup=InlineKeyboardMarkup(option_keyboard),
                 parse_mode=ParseMode.MARKDOWN)
         else:
             Quiz.send_scoreboard(context=context)
 
-    def stop_quiz(self, update: Update, context: CallbackContext) -> None:
+    @staticmethod
+    def stop_quiz(update: Update, context: CallbackContext) -> None:
         if context.chat_data.get('question_number', 0) != -1:
             Quiz.send_scoreboard(context=context)
         else:
