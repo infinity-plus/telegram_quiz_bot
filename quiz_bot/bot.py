@@ -157,6 +157,28 @@ class Quiz:
                 text="You can only attempt once!",
                 show_alert=True)
 
+    @staticmethod
+    def send_scoreboard(context: CallbackContext) -> None:
+        context.chat_data['question_number'] = -1
+        msg_text = "**Quiz Over**!\n**ScoreBoard*:\n\n"
+        values = sorted(context.chat_data['marksheet'],
+                        key=lambda x: x['score'],
+                        reverse=True)
+        data = [
+            f"{mention_markdown(id, attendee['name'])} : {attendee['score']}"
+            for id, attendee in values.items()
+        ]
+        data_str = [
+            f"{rank}. {name_score}" for rank, name_score in enumerate(data)
+        ]
+        scoreboard = "\n".join(data_str)
+        msg_text += f'{scoreboard}'
+        context.bot.delete_message(chat_id=self.message.chat.id,
+                                   message_id=self.message.message_id)
+        context.bot.send_message(text=msg_text,
+                                 chat_id=self.message.chat.id,
+                                 parse_mode=ParseMode.MARKDOWN).pin()
+
     def next_question(self, update: Update, context: CallbackContext) -> None:
         update.callback_query.answer()
         if context.chat_data['question_number'] < (
@@ -176,39 +198,13 @@ class Quiz:
                 reply_markup=InlineKeyboardMarkup(option_keyboard),
                 parse_mode=ParseMode.MARKDOWN)
         else:
-            context.chat_data['question_number'] = -1
-            msg_text = "**Quiz Over**!"
-            data = [
-                f"{mention_markdown(id, attendee['name'])} : {attendee['score']}"
-                for id, attendee in context.chat_data['marksheet'].items()
-            ]
-            scoreboard = "\n".join(data)
-            msg_text += "\n" + '**Scoreboard:**' + "\n" + f'{scoreboard}'
-            context.bot.delete_message(chat_id=self.message.chat.id,
-                                       message_id=self.message.message_id)
-            score_msg = context.bot.send_message(text=msg_text,
-                                                 chat_id=self.message.chat.id,
-                                                 parse_mode=ParseMode.MARKDOWN)
-            score_msg.pin()
+            Quiz.send_scoreboard(context=context)
 
     def stop_quiz(self, update: Update, context: CallbackContext) -> None:
         if context.chat_data.get('question_number', 0) != -1:
-            context.chat_data['question_number'] = -1
-            msg = "Quiz stopped successfully."
-            data = []
-            data = [
-                f"{mention_markdown(id, attendee['name'])} : {attendee['score']}"
-                for id, attendee in context.chat_data['marksheet'].items()
-            ]
-            scoreboard = "\n".join(data)
-            msg += "\n" + '**Scoreboard:**' + "\n" + f'{scoreboard}'
-            context.bot.delete_message(chat_id=self.message.chat.id,
-                                       message_id=self.message.message_id)
+            Quiz.send_scoreboard(context=context)
         else:
-            msg = "No quiz was there to stop :p"
-        score_msg = update.message.reply_text(msg,
-                                              parse_mode=ParseMode.MARKDOWN)
-        score_msg.pin()
+            update.effective_message.reply_text("No quiz was there to stop :p")
 
 
 if __name__ == '__main__':
