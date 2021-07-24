@@ -1,5 +1,4 @@
 from random import shuffle
-from requests import get
 from autologging import logged, traced
 
 
@@ -10,7 +9,8 @@ class Question:
     options: list[str] = []
     correct_option: str = ""
 
-    def __init__(self, statement: str, option1: str, option2: str, option3: str, option4: str, correct_option: str) -> None:
+    def __init__(self, statement: str, option1: str, option2: str,
+                 option3: str, option4: str, correct_option: str) -> None:
         self.statement = statement
         self.options = [option1, option2, option3, option4]
         self.correct_option = correct_option
@@ -41,8 +41,10 @@ class Question:
 
     def ask_question(self) -> str:
         newline = '\n'
-        return f'''Question: {self.statement}{newline}{newline}
-        Options:{newline}{newline.join([f"{number}. {option}" for number, option in enumerate(self.options, start=1)])}'''
+        return f'''Question: {self.statement}
+
+Options:
+{newline.join([f"{number}. {option}" for number, option in enumerate(self.options, start=1)])}'''
 
 
 @traced
