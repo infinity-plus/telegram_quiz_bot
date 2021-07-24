@@ -44,7 +44,8 @@ class Question:
         return f'''Question: {self.statement}
 
 Options:
-{newline.join([f"{number}. {option}" for number, option in enumerate(self.options, start=1)])}'''
+{newline.join([f"{number}. {option}"
+    for number, option in enumerate(self.options, start=1)])}'''
 
 
 @traced
