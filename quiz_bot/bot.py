@@ -219,8 +219,7 @@ if __name__ == '__main__':
         format=
         '%(levelname)s:%(asctime)s:%(filename)s,%(lineno)d:%(name)s.%(funcName)s:%(message)s',
         level=logging.WARN)
-    if not (Config.api == "None" or Config.sheet1 == "None"
-            or Config.sheet2 == "None" or Config.heroku == "None"):
+    if None not in (Config.api, Config.sheet1, Config.sheet2, Config.heroku):
         quiz_bot = Quiz(Config.api)
         quiz_bot.initilize()
     else:
