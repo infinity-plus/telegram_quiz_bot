@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import logging
 from requests import get
+from operator import itemgetter
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode, Update
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext
@@ -165,12 +166,12 @@ class Quiz:
     def send_scoreboard(context: CallbackContext) -> None:
         context.chat_data['question_number'] = -1
         msg_text = "**Quiz Over**!\n**ScoreBoard*:\n\n"
-        values = sorted(context.chat_data['marksheet'],
-                        key=lambda x: x['score'],
+        values = sorted(context.chat_data['marksheet'].items(),
+                        key=itemgetter('score'),
                         reverse=True)
         data = [
             f"{mention_markdown(id, attendee['name'])} : {attendee['score']}"
-            for id, attendee in values.items()
+            for id, attendee in values
         ]
         data_str = [
             f"{rank}. {name_score}" for rank, name_score in enumerate(data)
