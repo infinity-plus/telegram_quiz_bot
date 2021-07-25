@@ -165,7 +165,7 @@ class Quiz:
     @staticmethod
     def send_scoreboard(context: CallbackContext) -> None:
         context.chat_data['question_number'] = -1
-        msg_text = "**Quiz Over**!\n**ScoreBoard*:\n\n"
+        msg_text = "*Quiz Over*! \n*ScoreBoard*: \n\n"
         values = sorted(context.chat_data['marksheet'].items(),
                         key=lambda x: x[1]['score'],
                         reverse=True)
@@ -174,7 +174,8 @@ class Quiz:
             for id, attendee in values
         ]
         data_str = [
-            f"{rank}. {name_score}" for rank, name_score in enumerate(data)
+            f"{rank}. {name_score}"
+            for rank, name_score in enumerate(data, start=1)
         ]
         scoreboard = "\n".join(data_str)
         msg_text += f'{scoreboard}'
