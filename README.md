@@ -1,6 +1,6 @@
 # Telegram Quiz Bot
 
-![Python Version](https://img.shields.io/badge/python-3.9.5-blue.svg)
+![Python Version](https://img.shields.io/badge/python-3.9.6-blue.svg)
 
 [![Synk.io Vulnerablitites](https://snyk.io/test/github/infinity-plus/telegram_quiz_bot/badge.svg)](https://snyk.io/test/github/infinity-plus/telegram_quiz_bot)
 [![Maintainability](https://api.codeclimate.com/v1/badges/570a4808c7ca42adebb7/maintainability)](https://codeclimate.com/github/infinity-plus/telegram_quiz_bot/maintainability)
