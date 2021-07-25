@@ -10,7 +10,7 @@ class Question:
 
     + Args:
         - `statement: str` - Statement of the question.
-        - `option1`, `option2`, `option3`, `option4: str` - The options for the question.
+        - `option[1-4]: str` - The options for the question.
         - `correct_option: str` - The correct option.
     + Methods:
         - `is_correct(option: str) -> bool`: Returns whether the option is True or not.
@@ -18,9 +18,8 @@ class Question:
         - `get_question() -> str:` Returns the Question statement.
         - `get_correct() -> str:` Returns the correct option.
         - `shuffle_options() -> None:` Shuffle the options.
-        - `ask_question() -> str:` Returns a string with Question Statement and list of options.
+        - `ask_question() -> str:` Returns a string with statement and options.
     """
-
     def __init__(self, statement: str, option1: str, option2: str,
                  option3: str, option4: str, correct_option: str) -> None:
         self.statement: str = statement

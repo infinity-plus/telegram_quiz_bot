@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 import logging
 from requests import get
-from operator import itemgetter
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode, Update
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext
@@ -28,7 +27,8 @@ class Quiz:
         - `start()`: `/start` handler (static method).
         - `new_quiz()`: - Handler to initiate a quiz session (static method).
         - `choose_quiz()`: Handler to choose amongst the two quizzes (static method).
-        - `parse_question(question: Question) -> tuple[str, list[list[InlineKeyboardButton]]]`: A method returning a question statement with options as buttons.
+        - `parse_question(question: Question) -> tuple`: A method returning a question
+         statement with options as buttons.
         - `start_quiz()`: A handler to start the quiz.
         - `check_option()`: A handler to validate the option opted.
         - `send_scoreboard()`: A handler to send scoreboard to the chat.
@@ -243,7 +243,7 @@ class Quiz:
             update.effective_message.reply_text("No quiz was there to stop :p")
 
 
-"""Driver Code"""
+# Driver Code
 if __name__ == '__main__':
     logger = logging.getLogger(__name__)
     logging.basicConfig(
