@@ -167,7 +167,7 @@ class Quiz:
         context.chat_data['question_number'] = -1
         msg_text = "**Quiz Over**!\n**ScoreBoard*:\n\n"
         values = sorted(context.chat_data['marksheet'].items(),
-                        key=itemgetter('score'),
+                        key=lambda x: x[1]['score'],
                         reverse=True)
         data = [
             f"{mention_markdown(id, attendee['name'])} : {attendee['score']}"
@@ -208,7 +208,7 @@ class Quiz:
 
     @staticmethod
     def stop_quiz(update: Update, context: CallbackContext) -> None:
-        if context.chat_data.get('question_number', 0) != -1:
+        if context.chat_data.get('question_number', -1) != -1:
             Quiz.send_scoreboard(context=context)
         else:
             update.effective_message.reply_text("No quiz was there to stop :p")
