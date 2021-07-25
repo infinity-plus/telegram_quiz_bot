@@ -9,7 +9,7 @@ from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, Callback
 from telegram.utils.helpers import mention_markdown, escape_markdown
 
 from ptbcontrib.roles import setup_roles, RolesHandler
-from question import Question, QuestionList
+from question import Question
 from config import Config
 from autologging import logged, traced
 
@@ -17,10 +17,29 @@ from autologging import logged, traced
 @traced
 @logged
 class Quiz:
+    """
+    A class representing a quiz.
+
+    + Args:
+        - `TOKEN: str` - Bot Token from @botfather
+
+    + Methods:
+        - `initialize()`: Initialize all the handlers and start bot.
+        - `start()`: `/start` handler (static method).
+        - `new_quiz()`: - Handler to initiate a quiz session (static method).
+        - `choose_quiz()`: Handler to choose amongst the two quizzes (static method).
+        - `parse_question(question: Question) -> tuple[str, list[list[InlineKeyboardButton]]]`: A method returning a question statement with options as buttons.
+        - `start_quiz()`: A handler to start the quiz.
+        - `check_option()`: A handler to validate the option opted.
+        - `send_scoreboard()`: A handler to send scoreboard to the chat.
+        - `next_question()`: A handler to send next question.
+        - `stop_quiz()`: A handler to stop quiz immediately.
+    """
     def __init__(self, token: str) -> None:
         self.TOKEN = token
 
-    def initilize(self) -> None:
+    def initialize(self) -> None:
+        """Initialize all the handlers and start bot."""
         updater = Updater(token=Config.api)
         dispatcher = updater.dispatcher
         roles = setup_roles(dispatcher)
@@ -55,11 +74,13 @@ class Quiz:
 
     @staticmethod
     def start(update: Update, context: CallbackContext) -> None:
+        """`/start` handler (static method)."""
         context.bot.send_message(chat_id=update.effective_chat.id,
                                  text="I'm a bot, please talk to me!")
 
     @staticmethod
-    def new_quiz(update: Update, context: CallbackContext):
+    def new_quiz(update: Update, context: CallbackContext) -> None:
+        """Handler to initiate a quiz session (static method)."""
         if context.chat_data.get('question_number', -1) == -1:
             options = ['quiz1', 'quiz2']
             keyboard = [[
@@ -77,6 +98,7 @@ class Quiz:
 
     @staticmethod
     def choose_quiz(update: Update, context: CallbackContext) -> None:
+        """Handler to choose amongst the two quizzes (static method)."""
         chosen = update.callback_query.data
         if chosen == "quiz1":
             context.chat_data['current'] = Config.sheet1
@@ -84,7 +106,7 @@ class Quiz:
             context.chat_data['current'] = Config.sheet2
         response = get(context.chat_data['current'])
         result = response.json()
-        context.chat_data["qlist"] = QuestionList(result)
+        context.chat_data["qlist"] = [Question(**i) for i in result]
         keyboard = [[
             InlineKeyboardButton("start", callback_data="start_quiz")
         ]]
@@ -99,6 +121,7 @@ class Quiz:
     def parse_question(
             question: Question
     ) -> tuple[str, list[list[InlineKeyboardButton]]]:
+        """A method returning a question statement with options as buttons."""
         statement = question.ask_question()
         options = question.get_options()
         keyboard = [[
@@ -110,6 +133,7 @@ class Quiz:
 
     @staticmethod
     def start_quiz(update: Update, context: CallbackContext) -> None:
+        """A handler to start the quiz."""
         context.chat_data['question_number'] = 0
         context.chat_data['marksheet'] = {}
         context.chat_data['question_attempted_by'] = []
@@ -126,6 +150,7 @@ class Quiz:
 
     @staticmethod
     def check_option(update: Update, context: CallbackContext) -> None:
+        """A handler to validate the option opted."""
         if update.effective_user.id not in context.chat_data[
                 'question_attempted_by']:
             chosen = int(update.callback_query.data.split('_')[1])
@@ -164,6 +189,7 @@ class Quiz:
 
     @staticmethod
     def send_scoreboard(context: CallbackContext) -> None:
+        """A handler to send scoreboard to the chat."""
         context.chat_data['question_number'] = -1
         msg_text = "*Quiz Over*! \n*ScoreBoard*: \n\n"
         values = sorted(context.chat_data['marksheet'].items(),
@@ -187,6 +213,7 @@ class Quiz:
                                  parse_mode=ParseMode.MARKDOWN).pin()
 
     def next_question(self, update: Update, context: CallbackContext) -> None:
+        """A handler to send next question."""
         update.callback_query.answer()
         if context.chat_data['question_number'] < (
                 len(context.chat_data['qlist']) - 1):
@@ -209,12 +236,14 @@ class Quiz:
 
     @staticmethod
     def stop_quiz(update: Update, context: CallbackContext) -> None:
+        """A handler to stop quiz immediately."""
         if context.chat_data.get('question_number', -1) != -1:
             Quiz.send_scoreboard(context=context)
         else:
             update.effective_message.reply_text("No quiz was there to stop :p")
 
 
+"""Driver Code"""
 if __name__ == '__main__':
     logger = logging.getLogger(__name__)
     logging.basicConfig(
@@ -223,6 +252,6 @@ if __name__ == '__main__':
         level=logging.WARN)
     if None not in (Config.api, Config.sheet1, Config.sheet2, Config.heroku):
         quiz_bot = Quiz(Config.api)
-        quiz_bot.initilize()
+        quiz_bot.initialize()
     else:
         logger.error("Check environment variables")
