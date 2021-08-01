@@ -1,6 +1,6 @@
 from quiz_bot import TOKEN, HEROKU, PORT
 from quiz_bot.bot import Quiz
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext
+from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 from ptbcontrib.roles import setup_roles, RolesHandler
 
 

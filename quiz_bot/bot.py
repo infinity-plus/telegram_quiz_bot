@@ -36,8 +36,9 @@ class Quiz:
     @staticmethod
     def start(update: Update, context: CallbackContext) -> None:
         """`/start` handler (static method)."""
-        context.bot.send_message(chat_id=update.effective_chat.id,
-                                 text="I'm a bot, please talk to me!")
+        if update.effective_chat:
+            context.bot.send_message(chat_id=update.effective_chat.id,
+                                     text="I'm a bot, please talk to me!")
 
     @staticmethod
     def new_quiz(update: Update, context: CallbackContext) -> None:
@@ -112,41 +113,42 @@ class Quiz:
     @staticmethod
     def check_option(update: Update, context: CallbackContext) -> None:
         """A handler to validate the option opted."""
-        if update.effective_user.id not in context.chat_data[
-                'question_attempted_by']:
-            chosen = int(update.callback_query.data.split('_')[1])
-            que: Question = context.chat_data['qlist'][
-                context.chat_data['question_number']]
-            if context.chat_data['marksheet'].get(update.effective_user.id,
-                                                  None) is None:
-                context.chat_data['marksheet'][int(
-                    update.effective_user.id)] = {
-                        'name':
-                        escape_markdown(update.effective_user.full_name),
-                        'score': 0
-                    }
-            if que.is_correct(que.get_options()[chosen]):
-                context.chat_data['marksheet'][
-                    update.effective_user.id]['score'] += 1
-                context.bot.answer_callback_query(
-                    callback_query_id=update.callback_query.id,
-                    text="Correct!",
-                    show_alert=True)
+        if update.effective_chat and update.effective_user:
+            if update.effective_user.id not in context.chat_data[
+                    'question_attempted_by']:
+                chosen = int(update.callback_query.data.split('_')[1])
+                que: Question = context.chat_data['qlist'][
+                    context.chat_data['question_number']]
+                if context.chat_data['marksheet'].get(update.effective_user.id,
+                                                      None) is None:
+                    context.chat_data['marksheet'][int(
+                        update.effective_user.id)] = {
+                            'name':
+                            escape_markdown(update.effective_user.full_name),
+                            'score': 0
+                        }
+                if que.is_correct(que.get_options()[chosen]):
+                    context.chat_data['marksheet'][
+                        update.effective_user.id]['score'] += 1
+                    context.bot.answer_callback_query(
+                        callback_query_id=update.callback_query.id,
+                        text="Correct!",
+                        show_alert=True)
+                    context.chat_data['question_attempted_by'].append(
+                        update.effective_user.id)
+                else:
+                    context.bot.answer_callback_query(
+                        callback_query_id=update.callback_query.id,
+                        text=
+                        f"Incorrect!, the correct answer is: {que.get_correct()}",
+                        show_alert=True)
                 context.chat_data['question_attempted_by'].append(
                     update.effective_user.id)
             else:
                 context.bot.answer_callback_query(
                     callback_query_id=update.callback_query.id,
-                    text=
-                    f"Incorrect!, the correct answer is: {que.get_correct()}",
+                    text="You can only attempt once!",
                     show_alert=True)
-            context.chat_data['question_attempted_by'].append(
-                update.effective_user.id)
-        else:
-            context.bot.answer_callback_query(
-                callback_query_id=update.callback_query.id,
-                text="You can only attempt once!",
-                show_alert=True)
 
     @staticmethod
     def send_scoreboard(context: CallbackContext) -> None:
@@ -202,4 +204,6 @@ class Quiz:
         if context.chat_data.get('question_number', -1) != -1:
             Quiz.send_scoreboard(context=context)
         else:
-            update.effective_message.reply_text("No quiz was there to stop :p")
+            if update.effective_message:
+                update.effective_message.reply_text(
+                    "No quiz was there to stop :p")
