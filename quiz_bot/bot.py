@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import logging
 from requests import get
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode, Update
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext
+from telegram.ext import CallbackContext
 from telegram.utils.helpers import mention_markdown, escape_markdown
 
-from ptbcontrib.roles import setup_roles, RolesHandler
-from question import Question
-from config import Config
+from .question import Question
+from quiz_bot import SHEET1, SHEET2
 from autologging import logged, traced
 
 
@@ -35,43 +33,6 @@ class Quiz:
         - `next_question()`: A handler to send next question.
         - `stop_quiz()`: A handler to stop quiz immediately.
     """
-    def __init__(self, token: str) -> None:
-        self.TOKEN = token
-
-    def initialize(self) -> None:
-        """Initialize all the handlers and start bot."""
-        updater = Updater(token=Config.api)
-        dispatcher = updater.dispatcher
-        roles = setup_roles(dispatcher)
-
-        quiz_handler = CommandHandler('quiz', self.new_quiz)
-        choose_quiz_handler = CallbackQueryHandler(self.choose_quiz,
-                                                   pattern=r'^quiz[1-2]$')
-        start_button_handler = CallbackQueryHandler(self.start_quiz,
-                                                    pattern=r'^start_quiz$')
-        check_option_handler = CallbackQueryHandler(self.check_option,
-                                                    pattern=r'^option\_[0-3]$')
-        next_question_handler = CallbackQueryHandler(self.next_question,
-                                                     pattern=r'^next$')
-        stop_button_handler = CommandHandler('stop', Quiz.stop_quiz)
-
-        dispatcher.add_handler(CommandHandler('start', self.start))
-        dispatcher.add_handler(RolesHandler(quiz_handler, roles.chat_admins))
-        dispatcher.add_handler(
-            RolesHandler(choose_quiz_handler, roles.chat_admins))
-        dispatcher.add_handler(
-            RolesHandler(start_button_handler, roles.chat_admins))
-        dispatcher.add_handler(check_option_handler)
-        dispatcher.add_handler(
-            RolesHandler(next_question_handler, roles.chat_admins))
-        dispatcher.add_handler(
-            RolesHandler(stop_button_handler, roles.chat_admins))
-
-        updater.start_webhook(listen="0.0.0.0",
-                              port=int(Config.PORT),
-                              url_path=self.TOKEN)
-        updater.bot.setWebhook(Config.heroku + self.TOKEN)
-
     @staticmethod
     def start(update: Update, context: CallbackContext) -> None:
         """`/start` handler (static method)."""
@@ -101,9 +62,9 @@ class Quiz:
         """Handler to choose amongst the two quizzes (static method)."""
         chosen = update.callback_query.data
         if chosen == "quiz1":
-            context.chat_data['current'] = Config.sheet1
+            context.chat_data['current'] = SHEET1
         elif chosen == "quiz2":
-            context.chat_data['current'] = Config.sheet2
+            context.chat_data['current'] = SHEET2
         response = get(context.chat_data['current'])
         result = response.json()
         context.chat_data["qlist"] = [Question(**i) for i in result]
@@ -212,14 +173,15 @@ class Quiz:
                                  chat_id=context.chat_data['message'].chat.id,
                                  parse_mode=ParseMode.MARKDOWN).pin()
 
-    def next_question(self, update: Update, context: CallbackContext) -> None:
+    @staticmethod
+    def next_question(update: Update, context: CallbackContext) -> None:
         """A handler to send next question."""
         update.callback_query.answer()
         if context.chat_data['question_number'] < (
                 len(context.chat_data['qlist']) - 1):
             context.chat_data['question_number'] += 1
             context.chat_data['question_attempted_by'] = []
-            msg_text, option_keyboard = self.parse_question(
+            msg_text, option_keyboard = Quiz.parse_question(
                 context.chat_data['qlist'][
                     context.chat_data['question_number']])
             option_keyboard.append([
@@ -241,17 +203,3 @@ class Quiz:
             Quiz.send_scoreboard(context=context)
         else:
             update.effective_message.reply_text("No quiz was there to stop :p")
-
-
-# Driver Code
-if __name__ == '__main__':
-    logger = logging.getLogger(__name__)
-    logging.basicConfig(
-        format=
-        '%(levelname)s:%(asctime)s:%(filename)s,%(lineno)d:%(name)s.%(funcName)s:%(message)s',
-        level=logging.WARN)
-    if None not in (Config.api, Config.sheet1, Config.sheet2, Config.heroku):
-        quiz_bot = Quiz(Config.api)
-        quiz_bot.initialize()
-    else:
-        logger.error("Check environment variables")
