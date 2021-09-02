@@ -43,7 +43,8 @@ class Quiz:
     @staticmethod
     def new_quiz(update: Update, context: CallbackContext) -> None:
         """Handler to initiate a quiz session (static method)."""
-        assert isinstance(context.chat_data, dict)
+        if not isinstance(context.chat_data, dict):
+            raise AssertionError
         if update.effective_chat:
             if context.chat_data.get('question_number', -1) == -1:
                 options = ['quiz1', 'quiz2']
@@ -64,7 +65,8 @@ class Quiz:
     def choose_quiz(update: Update, context: CallbackContext) -> None:
         """Handler to choose amongst the two quizzes (static method)."""
         chosen = update.callback_query.data
-        assert isinstance(context.chat_data, dict)
+        if not isinstance(context.chat_data, dict):
+            raise AssertionError
         if chosen == "quiz1":
             context.chat_data['current'] = SHEET1
         elif chosen == "quiz2":
@@ -99,7 +101,8 @@ class Quiz:
     @staticmethod
     def start_quiz(update: Update, context: CallbackContext) -> None:
         """A handler to start the quiz."""
-        assert isinstance(context.chat_data, dict)
+        if not isinstance(context.chat_data, dict):
+            raise AssertionError
         context.chat_data['question_number'] = 0
         context.chat_data['marksheet'] = {}
         context.chat_data['question_attempted_by'] = []
@@ -112,14 +115,16 @@ class Quiz:
             chat_id=context.chat_data['message'].chat.id,
             message_id=context.chat_data['message'].message_id,
             reply_markup=InlineKeyboardMarkup(option_keyboard))
-        assert isinstance(context.chat_data['message'], Message)
+        if not isinstance(context.chat_data['message'], Message):
+            raise AssertionError
         context.chat_data['message'].pin()
 
     @staticmethod
     def check_option(update: Update, context: CallbackContext) -> None:
         """A handler to validate the option opted."""
         if update.effective_chat and update.effective_user:
-            assert isinstance(context.chat_data, dict)
+            if not isinstance(context.chat_data, dict):
+                raise AssertionError
             if update.effective_user.id not in context.chat_data[
                     'question_attempted_by']:
                 chosen = int(update.callback_query.data.split('_')[1])
@@ -159,7 +164,8 @@ class Quiz:
     @staticmethod
     def send_scoreboard(context: CallbackContext) -> None:
         """A handler to send scoreboard to the chat."""
-        assert isinstance(context.chat_data, dict)
+        if not isinstance(context.chat_data, dict):
+            raise AssertionError
         context.chat_data['question_number'] = -1
         msg_text = "*Quiz Over*! \n*ScoreBoard*: \n\n"
         values = sorted(context.chat_data['marksheet'].items(),
@@ -186,7 +192,8 @@ class Quiz:
     def next_question(update: Update, context: CallbackContext) -> None:
         """A handler to send next question."""
         update.callback_query.answer()
-        assert isinstance(context.chat_data, dict)
+        if not isinstance(context.chat_data, dict):
+            raise AssertionError
         if context.chat_data['question_number'] < (
                 len(context.chat_data['qlist']) - 1):
             context.chat_data['question_number'] += 1
@@ -209,7 +216,8 @@ class Quiz:
     @staticmethod
     def stop_quiz(update: Update, context: CallbackContext) -> None:
         """A handler to stop quiz immediately."""
-        assert isinstance(context.chat_data, dict)
+        if not isinstance(context.chat_data, dict):
+            raise AssertionError
         if context.chat_data.get('question_number', -1) != -1:
             Quiz.send_scoreboard(context=context)
         else:
