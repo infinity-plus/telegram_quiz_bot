@@ -8,6 +8,7 @@ from ptbcontrib.roles import setup_roles, RolesHandler
 
 
 def add_to_quizmasters(update: Update, context: CallbackContext):
+    """Handler to add user IDs to database."""
     if update.effective_message:
         user: User = update.effective_message.reply_to_message.from_user
         msg = add_quizmaster(user.id)
@@ -16,6 +17,7 @@ def add_to_quizmasters(update: Update, context: CallbackContext):
 
 
 def remove_from_quizmasters(update: Update, context: CallbackContext):
+    """Handler to remove user IDs from database."""
     if update.effective_message:
         user: User = update.effective_message.reply_to_message.from_user
         msg = rm_quizmaster(user.id)
@@ -23,13 +25,15 @@ def remove_from_quizmasters(update: Update, context: CallbackContext):
         update.effective_message.reply_text(text=msg)
 
 
-def list_quizmasters(update: Update, context: CallbackContext):
+def list_quizmasters(update: Update, _: CallbackContext):
+    """Handler to list quizmasters."""
     if update.effective_message:
         msg = '\n'.join(map(str, get_quizmasters()))
         update.effective_message.reply_text(text=msg)
 
 
 def main():
+    """Main function."""
     updater = Updater(token=TOKEN)
     dispatcher = updater.dispatcher
     roles = setup_roles(dispatcher)

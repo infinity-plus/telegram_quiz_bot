@@ -10,6 +10,7 @@ class QuizMaster(BASE):
     Args:
         - user_id: User ID of telegram account of Quizmaster.
     """
+
     __tablename__ = "quiz_master"
     user_id = Column(Integer, primary_key=True)
 
@@ -26,6 +27,7 @@ INSERTION_LOCK = threading.RLock()
 
 
 def get_quizmasters() -> list[int]:
+    """Function to get list of quizmasters from database."""
     try:
         return [
             int(user_id[0]) for user_id in SESSION.query(QuizMaster.user_id)
@@ -35,6 +37,7 @@ def get_quizmasters() -> list[int]:
 
 
 def add_quizmaster(user_id: int) -> str:
+    """Function to add user ID to database."""
     with INSERTION_LOCK:
         curr = SESSION.query(QuizMaster).get(user_id)
 
@@ -47,6 +50,7 @@ def add_quizmaster(user_id: int) -> str:
 
 
 def rm_quizmaster(user_id: int) -> str:
+    """Function to remove user ID from database."""
     with INSERTION_LOCK:
         curr = SESSION.query(QuizMaster).get(user_id)
 
