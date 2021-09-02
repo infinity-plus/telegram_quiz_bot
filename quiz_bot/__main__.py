@@ -2,7 +2,7 @@ from quiz_bot import TOKEN, HEROKU, PORT, OWNER
 from quiz_bot.bot import Quiz
 from quiz_bot.sql.quizmasters import add_quizmaster, rm_quizmaster, get_quizmasters
 from telegram import Update, User
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext
+from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext, Filters
 from ptbcontrib.roles import setup_roles, RolesHandler
 
 
@@ -40,8 +40,12 @@ def main():
     if OWNER not in quizmasters.chat_ids:
         quizmasters.add_member(OWNER)
 
-    add_role_handler = CommandHandler('add', add_to_quizmasters)
-    remove_role_handler = CommandHandler('remove', remove_from_quizmasters)
+    add_role_handler = CommandHandler('add',
+                                      add_to_quizmasters,
+                                      filters=Filters.reply)
+    remove_role_handler = CommandHandler('remove',
+                                         remove_from_quizmasters,
+                                         filters=Filters.reply)
     quiz_handler = CommandHandler('quiz', Quiz.new_quiz)
     choose_quiz_handler = CallbackQueryHandler(Quiz.choose_quiz,
                                                pattern=r'^quiz[1-2]$')
