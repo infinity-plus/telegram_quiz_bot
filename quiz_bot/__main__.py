@@ -63,8 +63,10 @@ def main():
     dispatcher.add_handler(RolesHandler(next_question_handler, quizmasters))
     dispatcher.add_handler(RolesHandler(stop_button_handler, quizmasters))
 
-    updater.start_webhook(listen="0.0.0.0", port=int(PORT), url_path=TOKEN)
-    updater.bot.setWebhook(HEROKU + TOKEN)
+    updater.start_webhook(listen="0.0.0.0",
+                          port=int(PORT),
+                          url_path=TOKEN,
+                          webhook_url=HEROKU + TOKEN)
 
 
 if __name__ == "__main__":
