@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from requests import get
 
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode, Update
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode, Update, Message
 from telegram.ext import CallbackContext
 from telegram.utils.helpers import mention_markdown, escape_markdown
 
@@ -43,25 +43,28 @@ class Quiz:
     @staticmethod
     def new_quiz(update: Update, context: CallbackContext) -> None:
         """Handler to initiate a quiz session (static method)."""
-        if context.chat_data.get('question_number', -1) == -1:
-            options = ['quiz1', 'quiz2']
-            keyboard = [[
-                InlineKeyboardButton(i, callback_data=i) for i in options
-            ]]
-            reply_markup = InlineKeyboardMarkup(keyboard)
-            context.chat_data['message'] = context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text="Choose your quiz. (Admin only)",
-                reply_markup=reply_markup)
-        else:
-            context.chat_data['message'] = context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text="A quiz is already running, close it first!")
+        assert isinstance(context.chat_data, dict)
+        if update.effective_chat:
+            if context.chat_data.get('question_number', -1) == -1:
+                options = ['quiz1', 'quiz2']
+                keyboard = [[
+                    InlineKeyboardButton(i, callback_data=i) for i in options
+                ]]
+                reply_markup = InlineKeyboardMarkup(keyboard)
+                context.chat_data['message'] = context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text="Choose your quiz. (Admin only)",
+                    reply_markup=reply_markup)
+            else:
+                context.chat_data['message'] = context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text="A quiz is already running, close it first!")
 
     @staticmethod
     def choose_quiz(update: Update, context: CallbackContext) -> None:
         """Handler to choose amongst the two quizzes (static method)."""
         chosen = update.callback_query.data
+        assert isinstance(context.chat_data, dict)
         if chosen == "quiz1":
             context.chat_data['current'] = SHEET1
         elif chosen == "quiz2":
@@ -96,6 +99,7 @@ class Quiz:
     @staticmethod
     def start_quiz(update: Update, context: CallbackContext) -> None:
         """A handler to start the quiz."""
+        assert isinstance(context.chat_data, dict)
         context.chat_data['question_number'] = 0
         context.chat_data['marksheet'] = {}
         context.chat_data['question_attempted_by'] = []
@@ -108,12 +112,14 @@ class Quiz:
             chat_id=context.chat_data['message'].chat.id,
             message_id=context.chat_data['message'].message_id,
             reply_markup=InlineKeyboardMarkup(option_keyboard))
+        assert isinstance(context.chat_data['message'], Message)
         context.chat_data['message'].pin()
 
     @staticmethod
     def check_option(update: Update, context: CallbackContext) -> None:
         """A handler to validate the option opted."""
         if update.effective_chat and update.effective_user:
+            assert isinstance(context.chat_data, dict)
             if update.effective_user.id not in context.chat_data[
                     'question_attempted_by']:
                 chosen = int(update.callback_query.data.split('_')[1])
@@ -153,6 +159,7 @@ class Quiz:
     @staticmethod
     def send_scoreboard(context: CallbackContext) -> None:
         """A handler to send scoreboard to the chat."""
+        assert isinstance(context.chat_data, dict)
         context.chat_data['question_number'] = -1
         msg_text = "*Quiz Over*! \n*ScoreBoard*: \n\n"
         values = sorted(context.chat_data['marksheet'].items(),
@@ -179,6 +186,7 @@ class Quiz:
     def next_question(update: Update, context: CallbackContext) -> None:
         """A handler to send next question."""
         update.callback_query.answer()
+        assert isinstance(context.chat_data, dict)
         if context.chat_data['question_number'] < (
                 len(context.chat_data['qlist']) - 1):
             context.chat_data['question_number'] += 1
@@ -201,6 +209,7 @@ class Quiz:
     @staticmethod
     def stop_quiz(update: Update, context: CallbackContext) -> None:
         """A handler to stop quiz immediately."""
+        assert isinstance(context.chat_data, dict)
         if context.chat_data.get('question_number', -1) != -1:
             Quiz.send_scoreboard(context=context)
         else:

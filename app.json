@@ -28,6 +28,9 @@
         },
         "HEROKU": {
             "description": "Heroku app link. Type App Name to get link."
+        },
+        "OWNER": {
+            "description": "Telegram ID of the bot owner."
         }
     }
 }
