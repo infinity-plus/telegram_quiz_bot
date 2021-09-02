@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 from requests import get
 
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode, Update, Message
+from telegram import (InlineKeyboardButton, InlineKeyboardMarkup, ParseMode,
+                      Update, Message)
 from telegram.ext import CallbackContext
 from telegram.utils.helpers import mention_markdown, escape_markdown
 
@@ -150,8 +151,8 @@ class Quiz:
                 else:
                     context.bot.answer_callback_query(
                         callback_query_id=update.callback_query.id,
-                        text=
-                        f"Incorrect!, the correct answer is: {que.get_correct()}",
+                        text="Incorrect!, " +
+                        f"the correct answer is: {que.get_correct()}",
                         show_alert=True)
                 context.chat_data['question_attempted_by'].append(
                     update.effective_user.id)

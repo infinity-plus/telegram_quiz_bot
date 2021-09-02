@@ -2,7 +2,8 @@ from quiz_bot import TOKEN, HEROKU, PORT, OWNER
 from quiz_bot.bot import Quiz
 from quiz_bot.sql.quizmasters import add_quizmaster, rm_quizmaster, get_quizmasters
 from telegram import Update, User
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext, Filters
+from telegram.ext import (Updater, CommandHandler, CallbackQueryHandler,
+                          CallbackContext, Filters)
 from ptbcontrib.roles import setup_roles, RolesHandler
 
 
