@@ -43,8 +43,7 @@ def add_quizmaster(user_id: int) -> str:
             SESSION.add(curr)
             SESSION.commit()
             return f"Successfully added {user_id} to database."
-        else:
-            return f"{user_id} Already in database."
+        return f"{user_id} Already in database."
 
 
 def rm_quizmaster(user_id: int) -> str:
@@ -55,5 +54,4 @@ def rm_quizmaster(user_id: int) -> str:
             SESSION.delete(curr)
             SESSION.commit()
             return f"Successfully removed {user_id} from database."
-        else:
-            return f"{user_id} is not in database."
+        return f"{user_id} is not in database."
