@@ -123,44 +123,45 @@ class Quiz:
     @staticmethod
     def check_option(update: Update, context: CallbackContext) -> None:
         """A handler to validate the option opted."""
-        if update.effective_chat and update.effective_user:
-            if not isinstance(context.chat_data, dict):
-                raise AssertionError
-            if update.effective_user.id not in context.chat_data[
-                    'question_attempted_by']:
-                chosen = int(update.callback_query.data.split('_')[1])
-                que: Question = context.chat_data['qlist'][
-                    context.chat_data['question_number']]
-                if context.chat_data['marksheet'].get(update.effective_user.id,
-                                                      None) is None:
-                    context.chat_data['marksheet'][int(
-                        update.effective_user.id)] = {
-                            'name':
-                            escape_markdown(update.effective_user.full_name),
-                            'score': 0
-                        }
-                if que.is_correct(que.get_options()[chosen]):
-                    context.chat_data['marksheet'][
-                        update.effective_user.id]['score'] += 1
-                    context.bot.answer_callback_query(
-                        callback_query_id=update.callback_query.id,
-                        text="Correct!",
-                        show_alert=True)
-                    context.chat_data['question_attempted_by'].append(
-                        update.effective_user.id)
-                else:
-                    context.bot.answer_callback_query(
-                        callback_query_id=update.callback_query.id,
-                        text="Incorrect!, " +
-                        f"the correct answer is: {que.get_correct()}",
-                        show_alert=True)
+        if not update.effective_chat or not update.effective_user:
+            return
+        if not isinstance(context.chat_data, dict):
+            raise AssertionError
+        if update.effective_user.id not in context.chat_data[
+                'question_attempted_by']:
+            chosen = int(update.callback_query.data.split('_')[1])
+            que: Question = context.chat_data['qlist'][
+                context.chat_data['question_number']]
+            if context.chat_data['marksheet'].get(update.effective_user.id,
+                                                  None) is None:
+                context.chat_data['marksheet'][int(
+                    update.effective_user.id)] = {
+                        'name':
+                        escape_markdown(update.effective_user.full_name),
+                        'score': 0
+                    }
+            if que.is_correct(que.get_options()[chosen]):
+                context.chat_data['marksheet'][
+                    update.effective_user.id]['score'] += 1
+                context.bot.answer_callback_query(
+                    callback_query_id=update.callback_query.id,
+                    text="Correct!",
+                    show_alert=True)
                 context.chat_data['question_attempted_by'].append(
                     update.effective_user.id)
             else:
                 context.bot.answer_callback_query(
                     callback_query_id=update.callback_query.id,
-                    text="You can only attempt once!",
+                    text="Incorrect!, " +
+                    f"the correct answer is: {que.get_correct()}",
                     show_alert=True)
+            context.chat_data['question_attempted_by'].append(
+                update.effective_user.id)
+        else:
+            context.bot.answer_callback_query(
+                callback_query_id=update.callback_query.id,
+                text="You can only attempt once!",
+                show_alert=True)
 
     @staticmethod
     def send_scoreboard(context: CallbackContext) -> None:
@@ -221,7 +222,6 @@ class Quiz:
             raise AssertionError
         if context.chat_data.get('question_number', -1) != -1:
             Quiz.send_scoreboard(context=context)
-        else:
-            if update.effective_message:
-                update.effective_message.reply_text(
-                    "No quiz was there to stop :p")
+        elif update.effective_message:
+            update.effective_message.reply_text(
+                "No quiz was there to stop :p")
